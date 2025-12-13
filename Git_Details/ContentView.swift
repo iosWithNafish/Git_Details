@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var savedUser: GitHubUser?
+
     @State private var user:GitHubUser?
     @State private var searchUser = ""
     var body: some View {
@@ -34,13 +36,25 @@ struct ContentView: View {
                             }
                         }
                     }
-                    .buttonStyle(.borderedProminent)
+                    .font(.title2)
+                    .frame(width: 80,height: 40)
+                    .background(Color.blue)
+                    .cornerRadius(10)
+                    .foregroundColor(.white)
                     .padding(5)
                     
-                    Button("Save  ") {
-                        
+                    Button {
+                        saveUser()
+                    } label: {
+                        Text("Save")
+                            .font(.title2)
+                            .frame(width: 70,height: 40)
+                            .background(Color.blue)
+                            .cornerRadius(10)
+                            .foregroundColor(.white)
                     }
-                    .buttonStyle(.borderedProminent)
+                    
+
                 }
                 
                    
@@ -61,6 +75,23 @@ struct ContentView: View {
                     .font(.title3)
                 Text(user?.bio ?? "Bio Placeholder")
                     .padding()
+                
+                if let savedUser {
+                    Text("Saved User")
+                        .font(.headline)
+                    AsyncImage(url: URL(string: savedUser.avatarUrl)) { image in
+                            image.resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .clipShape(Circle())
+                        } placeholder: {
+                            Circle().foregroundColor(.secondary)
+                        }
+                        .frame(width: 80,height: 80)
+                    Text(savedUser.login)
+                        .bold()
+                    Text(savedUser.bio ?? "no bio")
+                        .font(.caption)
+                }
                 
                 Spacer()
             }
@@ -85,6 +116,18 @@ struct ContentView: View {
             return try decoder.decode(GitHubUser.self, from: data)
         }catch{
             throw GHError.invalidData
+        }
+    }
+    
+    func saveUser(){
+        guard let user else{return }
+        do{
+            let data = try JSONEncoder().encode(user)
+            UserDefaults.standard.set(data, forKey: "user")
+            savedUser = user
+            print("User Saved")
+        }catch{
+            print("Failed")
         }
     }
     
